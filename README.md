@@ -4,6 +4,12 @@ A lightweight Chrome/Edge extension that adds full-square coordinate labels to C
 
 The extension is designed to look native to Chess.com. It does not read moves, call APIs, analyze positions, or modify game logic. It only adds visual coordinate labels to the board.
 
+## Why This Exists
+
+As a chess player, I always wanted to understand the board the way stronger players do. Grandmasters and experienced players can instantly recognize where every piece is and describe moves by their square names without hesitation.
+
+This extension was built to make that skill easier to practice during normal play. Instead of only seeing the edge coordinates, every square is labeled directly on the board, helping players connect moves, pieces, and square names naturally over time.
+
 ## Features
 
 - Shows coordinates on all 64 squares.
