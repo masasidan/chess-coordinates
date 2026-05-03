@@ -6,6 +6,16 @@
   const BOARD_ACTIVE_CLASS = "cco-board-has-full-coordinates";
   const OVERLAY_CLASS = "cco-full-coordinate-overlay";
   const SETTINGS_ROW_CLASS = "cco-settings-toggle-row";
+  const THEME_ATTRIBUTE_NAMES = [
+    "class",
+    "data-href",
+    "disabled",
+    "href",
+    "id",
+    "rel",
+    "style",
+  ];
+  const THEME_REFRESH_DELAYS = [0, 100, 350];
   const SWITCH_REFERENCE_LABELS = [
     "enable special themes",
     "highlight moves",
@@ -24,6 +34,7 @@
   const FILES = ["a", "b", "c", "d", "e", "f", "g", "h"];
   const trackedBoards = new Map();
   const trackedSettingsRows = new Set();
+  let observedThemeRoot = null;
   let fullCoordinatesEnabled = readStoredEnabled();
 
   class BoardOverlay {
@@ -223,6 +234,7 @@
   }
 
   function scanForBoards() {
+    observeThemeSources();
     scanForSettingsToggle();
 
     if (!fullCoordinatesEnabled) {
@@ -245,6 +257,38 @@
         trackedBoards.delete(board);
       }
     });
+
+    scheduleAllBoardUpdates();
+  }
+
+  function observeThemeSources() {
+    if (!document.head || document.head === observedThemeRoot) {
+      return;
+    }
+
+    themeObserver.disconnect();
+    observedThemeRoot = document.head;
+    themeObserver.observe(document.head, {
+      attributes: true,
+      attributeFilter: THEME_ATTRIBUTE_NAMES,
+      childList: true,
+      characterData: true,
+      subtree: true,
+    });
+  }
+
+  function scheduleThemeRefresh() {
+    THEME_REFRESH_DELAYS.forEach((delay) => {
+      window.setTimeout(scheduleAllBoardUpdates, delay);
+    });
+  }
+
+  function scheduleAllBoardUpdates() {
+    if (!fullCoordinatesEnabled) {
+      return;
+    }
+
+    trackedBoards.forEach((overlay) => overlay.scheduleUpdate());
   }
 
   function scanForSettingsToggle() {
@@ -1020,7 +1064,18 @@
   }
 
   const pageObserver = new MutationObserver(() => scanForBoards());
+  const themeObserver = new MutationObserver(() => scheduleThemeRefresh());
   let hasStarted = false;
+
+  function handleThemeResourceLoad(event) {
+    const target = event.target;
+    if (
+      target instanceof HTMLLinkElement &&
+      target.rel.toLowerCase().includes("stylesheet")
+    ) {
+      scheduleThemeRefresh();
+    }
+  }
 
   function start() {
     if (hasStarted || !document.documentElement) {
@@ -1028,12 +1083,17 @@
     }
 
     hasStarted = true;
+    document.addEventListener("load", handleThemeResourceLoad, true);
+    observeThemeSources();
     pageObserver.observe(document.documentElement, {
       attributes: true,
       attributeFilter: [
         "aria-hidden",
         "aria-selected",
         "class",
+        "data-href",
+        "disabled",
+        "href",
         "hidden",
         "style",
       ],
