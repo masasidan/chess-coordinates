@@ -1,0 +1,14 @@
+{
+  "manifest_version": 3,
+  "name": "Chess.com Full Coordinates",
+  "version": "0.1.0",
+  "description": "Adds native-looking full-square coordinate labels to Chess.com boards.",
+  "content_scripts": [
+    {
+      "matches": ["https://www.chess.com/*"],
+      "css": ["src/content.css"],
+      "js": ["src/content.js"],
+      "run_at": "document_start"
+    }
+  ]
+}
